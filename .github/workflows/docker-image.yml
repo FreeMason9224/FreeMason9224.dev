@@ -1,0 +1,55 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+            
+            - name: Docker Setup Buildx
+  # You may pin to the exact commit or the version.
+  # uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db
+  uses: docker/setup-buildx-action@v3.6.1
+  with:
+    # Buildx version. (eg. v0.3.0)
+    version: # optional
+    # Sets the builder driver to be used
+    driver: # optional, default is docker-container
+    # List of additional driver-specific options. (eg. image=moby/buildkit:master)
+    driver-opts: # optional
+    # BuildKit daemon flags
+    buildkitd-flags: # optional, default is --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
+    # BuildKit daemon config file
+    buildkitd-config: # optional
+    # Inline BuildKit daemon config
+    buildkitd-config-inline: # optional
+    # Sets up docker build command as an alias to docker buildx build
+    install: # optional, default is false
+    # Switch to this builder instance
+    use: # optional, default is true
+    # Optional address for docker socket or context from `docker context ls`
+    endpoint: # optional
+    # Fixed platforms for current node. If not empty, values take priority over the detected ones
+    platforms: # optional
+    # Append additional nodes to the builder
+    append: # optional
+    # Cache buildx binary to GitHub Actions cache backend
+    cache-binary: # optional, default is true
+    # Cleanup temp files and remove builder at the end of a job
+    cleanup: # optional, default is true
+    # BuildKit daemon config file
+    config: # optional
+    # Inline BuildKit daemon config
+    config-inline: # optional
+          
