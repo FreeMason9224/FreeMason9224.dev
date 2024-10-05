@@ -1,43 +1,43 @@
 name: Secure Storage Workflow
 
 on:
-push:
-branches:
-- main
-pull_request:
-branches:
-- main
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-secure-storage:
-runs-on: ubuntu-latest
+  secure-storage:
+    runs-on: ubuntu-latest
 
-permissions:
-  contents: read
-  secrets: read
+    permissions:
+      contents: read
+      secrets: read
 
-steps:
-- name: Checkout repository
-  uses: actions/checkout@v2
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-- name: Setup GPG
-  run: |
-    echo ${{ secrets.GPG_PRIVATE_KEY }} | gpg --import
-    echo ${{ secrets.GPG_PASSPHRASE }} | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --import
+    - name: Setup GPG
+      run: |
+        echo ${{ secrets.GPG_PRIVATE_KEY }} | gpg --import
+        echo ${{ secrets.GPG_PASSPHRASE }} | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --import
 
-- name: Decrypt Secret File
-  env:
-    GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-  run: |
-    gpg --quiet --batch --yes --decrypt --passphrase="$GPG_PASSPHRASE" --output decrypted_file.txt encrypted_file.txt
+    - name: Decrypt Secret File
+      env:
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      run: |
+        gpg --quiet --batch --yes --decrypt --passphrase="$GPG_PASSPHRASE" --output decrypted_file.txt encrypted_file.txt
 
-- name: Use Decrypted Secret
-  run: |
-    cat decrypted_file.txt
-    # Add additional commands to use the decrypted secret
+    - name: Use Decrypted Secret
+      run: |
+        cat decrypted_file.txt
+        # Add additional commands to use the decrypted secret
 
-- name: Cleanup
-  run: |
-    shred -u decrypted_file.txt
-    gpg --batch --yes --delete-secret-keys ${{ secrets.GPG_KEY_ID }}
-    gpg --batch --yes --delete-keys ${{ secrets.GPG_KEY_ID }}
+    - name: Cleanup
+      run: |
+        shred -u decrypted_file.txt
+        gpg --batch --yes --delete-secret-keys ${{ secrets.GPG_KEY_ID }}
+        gpg --batch --yes --delete-keys ${{ secrets.GPG_KEY_ID }}
