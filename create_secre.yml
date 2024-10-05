@@ -1,71 +1,86 @@
-```yaml
----
-boto3:
-  from: botocore.exceptions import ClientError
+name: Secure Storage Workflow
 
-client:
-  boto3.client('secretsmanager', region_name='your-region')
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-functions:
-  create_secret:
-    secret_name: 'my-secret'
-    secret_value: 'super-secret-value'
-    response: client.create_secret(
-      Name: secret_name,
-      SecretString: secret_value
-    )
-    print(f'Secret created: {response["ARN"]}')
-    except ClientError as e:
-        print(f'Error creating secret: {e}')
+jobs:
+  secure-storage:
+    runs-on: ubuntu-latest
 
-def get_secret(secret_name):
-    try:
-        # Retrieve the secret
-        response = client.get_secret_value(
-            SecretId=secret_name
-        )
-        secret = response['SecretString']
-        print(f'Secret retrieved: {secret}')
-        return secret
-    except ClientError as e:
-        print(f'Error retrieving secret: {e}')
+    permissions:
+      contents: read
+      secrets: read
 
-def rotate_secret(secret_name, new_secret_value):
-    try:
-        # Rotate the secret
-        response = client.update_secret(
-            SecretId=secret_name,
-            SecretString=new_secret_value
-        )
-        print(f'Secret rotated: {response["ARN"]}')
-    except ClientError as e:
-        print(f'Error rotating secret: {e}')
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-def delete_secret(secret_name):
-    try:
-        # Delete the secret
-        response = client.delete_secret(
-            SecretId=secret_name,
-            ForceDeleteWithoutRecovery=True
-        )
-        print(f'Secret deleted: {response["ARN"]}')
-    except ClientError as e:
-        print(f'Error deleting secret: {e}')
+    - name: Setup GPG
+      run: |
+        echo ${{ secrets.GPG_PRIVATE_KEY }} | gpg --import
+        echo ${{ secrets.GPG_PASSPHRASE }} | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --import
 
-# Example usage
-if __name__ == "__main__":
-    secret_name = 'my-secret'
-    secret_value = 'super-secret-value'
+    - name: Decrypt Secret File
+      env:
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      run: |
+        gpg --quiet --batch --yes --decrypt --passphrase="$GPG_PASSPHRASE" --output decrypted_file.txt encrypted_file.txt
 
-    # Create a secret
-    create_secret(secret_name, secret_value)
+    - name: Use Decrypted Secret
+      run: |
+        cat decrypted_file.txt
+        # Add additional commands to use the decrypted secret
 
-    # Get the secret
-    retrieved_secret = get_secret(secret_name)
+    - name: Cleanup
+      run: |
+        shred -u decrypted_file.txt
+        gpg --batch --yes --delete-secret-keys ${{ secrets.GPG_KEY_ID }}
+        gpg --batch --yes --delete-keys ${{ secrets.GPG_KEY_ID }}
 
-    # Rotate the secret
-    new_secret_value = 'new-super-secret-value'
-    rotate_secret(secret_name, new_secret_value)
+        name: Secure Storage Workflow
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-    # Delete the secret
-    delete_secret(secret_name)
+jobs:
+  secure-storage:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      secrets: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Setup GPG
+      run: |
+        echo ${{ secrets.GPG_PRIVATE_KEY }} | gpg --import
+        echo ${{ secrets.GPG_PASSPHRASE }} | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --import
+
+    - name: Decrypt Secret File
+      env:
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      run: |
+        gpg --quiet --batch --yes --decrypt --passphrase="$GPG_PASSPHRASE" --output decrypted_file.txt encrypted_file.txt
+
+    - name: Use Decrypted Secret
+      run: |
+        cat decrypted_file.txt
+        # Add additional commands to use the decrypted secret
+
+    - name: Cleanup
+      run: |
+        shred -u decrypted_file.txt
+        gpg --batch --yes --delete-secret-keys ${{ secrets.GPG_KEY_ID }}
+        gpg --batch --yes --delete-keys ${{ secrets.GPG_KEY_ID }}
