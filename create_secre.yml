@@ -1,0 +1,68 @@
+import boto3
+from botocore.exceptions import ClientError
+
+# Initialize a session using Amazon Secrets Manager
+client = boto3.client('secretsmanager', region_name='your-region')
+
+def create_secret(secret_name, secret_value):
+    try:
+        # Create a new secret
+        response = client.create_secret(
+            Name=secret_name,
+            SecretString=secret_value
+        )
+        print(f'Secret created: {response["ARN"]}')
+    except ClientError as e:
+        print(f'Error creating secret: {e}')
+
+def get_secret(secret_name):
+    try:
+        # Retrieve the secret
+        response = client.get_secret_value(
+            SecretId=secret_name
+        )
+        secret = response['SecretString']
+        print(f'Secret retrieved: {secret}')
+        return secret
+    except ClientError as e:
+        print(f'Error retrieving secret: {e}')
+
+def rotate_secret(secret_name, new_secret_value):
+    try:
+        # Rotate the secret
+        response = client.update_secret(
+            SecretId=secret_name,
+            SecretString=new_secret_value
+        )
+        print(f'Secret rotated: {response["ARN"]}')
+    except ClientError as e:
+        print(f'Error rotating secret: {e}')
+
+def delete_secret(secret_name):
+    try:
+        # Delete the secret
+        response = client.delete_secret(
+            SecretId=secret_name,
+            ForceDeleteWithoutRecovery=True
+        )
+        print(f'Secret deleted: {response["ARN"]}')
+    except ClientError as e:
+        print(f'Error deleting secret: {e}')
+
+# Example usage
+if __name__ == "__main__":
+    secret_name = 'my-secret'
+    secret_value = 'super-secret-value'
+
+    # Create a secret
+    create_secret(secret_name, secret_value)
+
+    # Get the secret
+    retrieved_secret = get_secret(secret_name)
+
+    # Rotate the secret
+    new_secret_value = 'new-super-secret-value'
+    rotate_secret(secret_name, new_secret_value)
+
+    # Delete the secret
+    delete_secret(secret_name)
