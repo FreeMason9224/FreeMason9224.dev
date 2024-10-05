@@ -41,22 +41,3 @@ jobs:
         shred -u decrypted_file.txt
         gpg --batch --yes --delete-secret-keys ${{ secrets.GPG_KEY_ID }}
         gpg 
-
-on:
-
-    - name: Decrypt Secret File
-      env:
-        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      run: |
-        gpg --quiet --batch --yes --decrypt --passphrase="$GPG_PASSPHRASE" --output decrypted_file.txt encrypted_file.txt
-
-    - name: Use Decrypted Secret
-      run: |
-        cat decrypted_file.txt
-        # Add additional commands to use the decrypted secret
-
-    - name: Cleanup
-      run: |
-        shred -u decrypted_file.txt
-        gpg --batch --yes --delete-secret-keys ${{ secrets.GPG_KEY_ID }}
-        gpg --batch --yes --delete-keys ${{ secrets.GPG_KEY_ID }}
