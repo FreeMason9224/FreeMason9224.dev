@@ -1,17 +1,20 @@
-import boto3
-from botocore.exceptions import ClientError
+```yaml
+---
+boto3:
+  from: botocore.exceptions import ClientError
 
-# Initialize a session using Amazon Secrets Manager
-client = boto3.client('secretsmanager', region_name='your-region')
+client:
+  boto3.client('secretsmanager', region_name='your-region')
 
-def create_secret(secret_name, secret_value):
-    try:
-        # Create a new secret
-        response = client.create_secret(
-            Name=secret_name,
-            SecretString=secret_value
-        )
-        print(f'Secret created: {response["ARN"]}')
+functions:
+  create_secret:
+    secret_name: 'my-secret'
+    secret_value: 'super-secret-value'
+    response: client.create_secret(
+      Name: secret_name,
+      SecretString: secret_value
+    )
+    print(f'Secret created: {response["ARN"]}')
     except ClientError as e:
         print(f'Error creating secret: {e}')
 
