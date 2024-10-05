@@ -43,29 +43,6 @@ jobs:
         gpg 
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-jobs:
-  secure-storage:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      secrets: read
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Setup GPG
-      run: |
-        echo ${{ secrets.GPG_PRIVATE_KEY }} | gpg --import
-        echo ${{ secrets.GPG_PASSPHRASE }} | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --import
 
     - name: Decrypt Secret File
       env:
